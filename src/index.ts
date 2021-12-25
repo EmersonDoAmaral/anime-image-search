@@ -104,9 +104,9 @@ export class Api {
   }
 
   /**
-   * Receives a delete hash, then try to delete the image from imgur.
+   * Receives a image url to search.
    *
-   * @param deletehash - The delete hash returned by uploadToImgur.
+   * @param imageUrl - A image url to search.
    * @param minSimilarity - The minimum similarity to return the images. Default: 80
    *
    * @returns Returns an object array containing the more similars images.
@@ -141,7 +141,7 @@ export class Api {
   /**
    * Returns an object containing similars images.
    *
-   * @param imageUrl - A base64 image or a Buffer
+   * @param imageUrl - A image url to search
    *
    * @returns A array containing similars images from IQDB
    * @see https://iqdb.org

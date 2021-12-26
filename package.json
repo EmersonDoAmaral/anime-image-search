@@ -6,7 +6,8 @@
   "scripts": {
     "dev:tsc": "tsc -w",
     "dev:node": "nodemon dist/index.js",
-    "dev:test": "ts-node-dev --clear --respawn --ignore-watch 'src/*' --watch './test/**/*' --transpile-only --respawn ./tests/test.ts"
+    "dev:test": "ts-node-dev --respawn --watch './tests/**/*' ./tests/test.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "axios": "^0.24.0",

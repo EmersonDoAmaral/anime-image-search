@@ -28,7 +28,7 @@ export class Api {
   private imgurBaseConfig: {
     url: string;
     headers: {
-      Authorization: string;
+      Authorization?: string;
       UserAgent?: string;
     };
   };
@@ -61,6 +61,7 @@ export class Api {
     link?: string;
     deletehash?: string;
     status?: number;
+    success?: boolean;
   }> {
     const config: AxiosRequestConfig = {
       method: 'post',
@@ -71,12 +72,22 @@ export class Api {
       ...this.imgurBaseConfig
     };
 
-    const request = await axios(config);
+    const request = await axios(config).catch((err) => {
+      if (err.response.status === 401) {
+        throw new Error(
+          'You need an Imgur Client-ID to upload an image. Go to https://api.imgur.com/oauth2/addclient, register, get your Client-ID and pass to the constructor.'
+        );
+      } else if (err.response.status === 403) {
+        throw new Error(err.response.data.data.error);
+      } else {
+        return err.response.data;
+      }
+    });
 
-    const { status, data, success } = request.data;
+    const { status, data, success } = request?.data;
 
     if (!success) {
-      return { status };
+      return { status, success };
     }
 
     const { link, deletehash, id } = data;
@@ -122,10 +133,16 @@ export class Api {
 
     if (!this.options.saucenaoKey) {
       throw new Error(
-        '\x1b[31mTo use saucenao you need to use your own api key. Go to https://saucenao.com, register and get an api key.\x1b[0m'
+        'To use saucenao search you need to use your own api key. Go to https://saucenao.com, register and get an api key.'
       );
     }
-    const response = await axios(config);
+    const response = await axios(config).catch((err) => {
+      if (err.response.status === 403) {
+        throw new Error(`${err.response.statusText}, the api key is invalid.`);
+      } else {
+        throw new Error(`${err.response.status}. ${err.response.statusText}`);
+      }
+    });
 
     const similarImages: [] = response.data.results;
 

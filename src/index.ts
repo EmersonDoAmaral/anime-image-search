@@ -2,6 +2,7 @@ require('dotenv').config();
 import cheerio from 'cheerio';
 import FormData from 'form-data';
 import axios, { AxiosRequestConfig } from 'axios';
+import { ReadStream, createReadStream } from 'fs';
 
 interface DefaultOptions {
   imgurKey?: string;
@@ -13,6 +14,17 @@ interface DefaultOptions {
   };
 }
 
+interface SaucenaoOptions {
+  api_key?: string;
+  output_type?: number;
+  dbmask?: number;
+  dbmaski?: number;
+  db?: number;
+  numres?: number;
+  hide?: number;
+  min_similarity?: number;
+}
+
 const dOptions: DefaultOptions = {
   axios: {
     headers: {
@@ -20,6 +32,14 @@ const dOptions: DefaultOptions = {
         'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1'
     }
   }
+};
+
+const saucenaoDefaultOptions: SaucenaoOptions = {
+  output_type: 2,
+  db: 999,
+  numres: 10,
+  hide: 3,
+  min_similarity: 0
 };
 
 export class Api {
@@ -36,10 +56,7 @@ export class Api {
   constructor(options: DefaultOptions) {
     this.options = { ...dOptions, ...options };
 
-    this.searchEngines = [
-      `https://saucenao.com/search.php?api_key=${this.options.saucenaoKey}&output_type=2&db=999&dmkasi=32768&url=`,
-      'http://www.iqdb.org'
-    ];
+    this.searchEngines = ['https://saucenao.com', 'http://www.iqdb.org'];
 
     this.imgurBaseConfig = {
       url: 'https://api.imgur.com/3/image',
@@ -115,27 +132,62 @@ export class Api {
   }
 
   /**
-   * Receives a image url to search.
+   * Receives a image to search in saucenao.
    *
-   * @param imageUrl - A image url to search.
-   * @param minSimilarity - The minimum similarity to return the images. Default: 80
+   * @param {string} image - A image url to search.
+   * @param {SaucenaoOptions} options - Saucenao Options.
+   * @param {string} options.api_key - Saucenao Api Key.
+   * @param {number} options.output_type - Output type.
+   * @param {number} options.dbmask - Mask for enable specific indexes.
+   * @param {number} options.dbmaski - Mask for disable specific indexes.
+   * @param {number} options.db - Search for a specific index or 999 for all.
+   * @param {number} options.numres - Max results.
+   * @param {number} options.hide - Hide or show explict content.
+   * @param {number} options.min_similarity - The minimum image similarity to return. Default: 0.
+   *
+   * @see https://saucenao.com/user.php?page=search-api
    *
    * @returns Returns an object array containing the more similars images.
    */
   async saucenao(
-    imageUrl: string,
-    minSimilarity: number = 80
+    image: string | Buffer | ReadStream | any,
+    options: SaucenaoOptions
   ): Promise<object[]> {
-    const config: AxiosRequestConfig = {
-      method: 'get',
-      url: this.searchEngines[0] + imageUrl
-    };
+    const opts = { ...saucenaoDefaultOptions, ...options };
 
-    if (!this.options.saucenaoKey) {
+    if (!opts.api_key) {
       throw new Error(
         'To use saucenao search you need to use your own api key. Go to https://saucenao.com, register and get an api key.'
       );
     }
+
+    const data = new FormData();
+
+    Object.entries(opts).map((opt) => {
+      data.append(opt[0], opt[1]);
+    });
+
+    if (image instanceof ReadStream) {
+      data.append('file', image);
+    } else if (typeof image === 'string') {
+      if (/^https?:/.test(image)) {
+        data.append('url', image);
+      } else {
+        data.append('file', createReadStream(image));
+      }
+    } else {
+      throw new Error(
+        'Invalid image type, valid types: Path, url or ReadStream'
+      );
+    }
+
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: this.searchEngines[0] + '/search.php',
+      data: data,
+      headers: data.getHeaders()
+    };
+
     const response = await axios(config).catch((err) => {
       if (err.response.status === 403) {
         throw new Error(`${err.response.statusText}, the api key is invalid.`);
@@ -144,15 +196,13 @@ export class Api {
       }
     });
 
-    const similarImages: [] = response.data.results;
-
-    const moreSimilar: object[] = similarImages.filter(
-      (image: { header: { similarity: string } }) => {
-        return parseInt(image.header.similarity) >= minSimilarity;
+    const results = response.data.results.filter(
+      (item: { header: { similarity: string } }) => {
+        return parseFloat(item.header.similarity) >= opts.min_similarity!;
       }
     );
 
-    return moreSimilar;
+    return results;
   }
 
   /**

@@ -1,7 +1,10 @@
 {
-  "name": "Anime-Image-Search",
+  "name": "anime-image-search",
+  "description": "An anime image search package.",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
   "license": "MIT",
   "scripts": {
     "dev:tsc": "tsc -w",
@@ -9,6 +12,11 @@
     "dev:test": "ts-node-dev --respawn --watch './tests/**/*' ./tests/test.ts",
     "build": "tsc"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmersonDoAmaral/anime-image-search.git"
+  },
+  "author": "Emerson do Amaral",
   "dependencies": {
     "axios": "^0.24.0",
     "cheerio": "^1.0.0-rc.10",

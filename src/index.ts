@@ -42,7 +42,7 @@ const saucenaoDefaultOptions: SaucenaoOptions = {
   min_similarity: 0
 };
 
-export class Api {
+export default class Api {
   private options: DefaultOptions;
   private searchEngines: string[];
   private imgurBaseConfig: {
@@ -53,7 +53,7 @@ export class Api {
     };
   };
 
-  constructor(options: DefaultOptions) {
+  constructor(options: DefaultOptions = {}) {
     this.options = { ...dOptions, ...options };
 
     this.searchEngines = ['https://saucenao.com', 'http://www.iqdb.org'];

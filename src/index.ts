@@ -134,7 +134,7 @@ export class Api {
   /**
    * Receives a image to search in saucenao.
    *
-   * @param {string} image - A image url to search.
+   * @param {string|Buffer|ReadStream} image - The image to search.
    * @param {SaucenaoOptions} options - Saucenao Options.
    * @param {string} options.api_key - Saucenao Api Key.
    * @param {number} options.output_type - Output type.
@@ -150,7 +150,7 @@ export class Api {
    * @returns Returns an object array containing the more similars images.
    */
   async saucenao(
-    image: string | Buffer | ReadStream | any,
+    image: string | Buffer | ReadStream,
     options: SaucenaoOptions
   ): Promise<object[]> {
     const opts = { ...saucenaoDefaultOptions, ...options };
@@ -175,6 +175,8 @@ export class Api {
       } else {
         data.append('file', createReadStream(image));
       }
+    } else if (image instanceof Buffer) {
+      data.append('file', image, 'image');
     } else {
       throw new Error(
         'Invalid image type, valid types: Path, url or ReadStream'

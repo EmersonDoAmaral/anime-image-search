@@ -5,8 +5,6 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { ReadStream, createReadStream } from 'fs';
 
 interface DefaultOptions {
-  imgurKey?: string;
-  saucenaoKey?: string;
   axios?: {
     headers?: {
       UserAgent?: string;
@@ -45,92 +43,12 @@ const saucenaoDefaultOptions: SaucenaoOptions = {
 export default class Api {
   private options: DefaultOptions;
   private searchEngines: string[];
-  private imgurBaseConfig: {
-    url: string;
-    headers: {
-      Authorization?: string;
-      UserAgent?: string;
-    };
-  };
 
   constructor(options: DefaultOptions = {}) {
     this.options = { ...dOptions, ...options };
 
     this.searchEngines = ['https://saucenao.com', 'http://www.iqdb.org'];
-
-    this.imgurBaseConfig = {
-      url: 'https://api.imgur.com/3/image',
-      headers: {
-        Authorization: `Client-ID ${this.options.imgurKey}`,
-        ...this.options.axios?.headers
-      }
-    };
   }
-  /**
-   * Receives a base64 image and uploads to imgur.
-   *
-   * @param file - The base64 string to upload.
-   *
-   * @returns Data from Imgur if success
-   */
-  async uploadToImgur(file: string): Promise<{
-    id?: string;
-    link?: string;
-    deletehash?: string;
-    status?: number;
-    success?: boolean;
-  }> {
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      data: {
-        image: file,
-        type: 'base64'
-      },
-      ...this.imgurBaseConfig
-    };
-
-    const request = await axios(config).catch((err) => {
-      if (err.response.status === 401) {
-        throw new Error(
-          'You need an Imgur Client-ID to upload an image. Go to https://api.imgur.com/oauth2/addclient, register, get your Client-ID and pass to the constructor.'
-        );
-      } else if (err.response.status === 403) {
-        throw new Error(err.response.data.data.error);
-      } else {
-        return err.response.data;
-      }
-    });
-
-    const { status, data, success } = request?.data;
-
-    if (!success) {
-      return { status, success };
-    }
-
-    const { link, deletehash, id } = data;
-
-    return { id, link, deletehash, status };
-  }
-
-  /**
-   * Receives a delete hash, then try to delete the image from imgur.
-   *
-   * @param deletehash - The delete hash returned by uploadToImgur.
-   *
-   * @returns Data from Imgur.
-   */
-  async deleteImgurImage(deletehash: string): Promise<object> {
-    const config: AxiosRequestConfig = {
-      method: 'delete',
-      ...this.imgurBaseConfig,
-      url: this.imgurBaseConfig.url + `/${deletehash}`
-    };
-
-    const request = await axios(config);
-
-    return request.data;
-  }
-
   /**
    * Receives a image to search in saucenao.
    *

@@ -7,10 +7,11 @@
   "files": ["dist/**/*"],
   "license": "MIT",
   "scripts": {
-    "dev:tsc": "tsc -w",
+    "dev:tsc": "yarn tsc -w",
     "dev:node": "nodemon dist/index.js",
-    "dev:test": "ts-node-dev --respawn --watch './tests/**/*' ./tests/test.ts",
-    "build": "tsc"
+    "dev:test": "yarn ts-node-dev --respawn --watch './tests/**/*' ./tests/test.ts",
+    "build": "yarn tsc",
+    "prepare": "yarn build"
   },
   "repository": {
     "type": "git",

@@ -206,24 +206,37 @@ export class Api {
   }
 
   /**
-   * Returns an object containing similars images.
+   * Search an image in iqdb.
    *
-   * @param imageUrl - A image url to search
+   * @param {Buffer|string|ReadStream} image - The image to search.
    *
    * @returns A array containing similars images from IQDB
    * @see https://iqdb.org
    */
-  async iqdb(imageUrl: string): Promise<object[]> {
-    const formData = new FormData();
-    formData.append('url', imageUrl);
+  async iqdb(image: string | ReadStream | Buffer): Promise<object[]> {
+    const data = new FormData();
+
+    if (image instanceof ReadStream) {
+      data.append('file', image);
+    } else if (typeof image === 'string') {
+      if (/^https?:/.test(image)) {
+        data.append('url', image);
+      } else {
+        data.append('file', createReadStream(image));
+      }
+    } else if (image instanceof Buffer) {
+      data.append('file', image, 'image');
+    } else {
+      throw new Error(
+        'Invalid image type, valid types: Path, url or ReadStream'
+      );
+    }
 
     const config: AxiosRequestConfig = {
       method: 'POST',
       url: this.searchEngines[1],
-      headers: {
-        ...formData.getHeaders()
-      },
-      data: formData
+      headers: data.getHeaders(),
+      data: data
     };
 
     const request = await axios(config);
@@ -237,6 +250,9 @@ export class Api {
       const isYourImage = 'table > tbody > tr:nth-child(1)';
       const imageUrlSelector = 'td.image > a';
       const similaritySelector = 'table > tbody > tr:nth-child(5) > td';
+      const serviceSelector1 = 'table > tbody > tr:nth-child(3) > td';
+      const serviceSelector2 =
+        'table > tbody > tr:nth-child(3) > td > *:last-child';
 
       const eHtml = $(e).html();
 
@@ -255,9 +271,14 @@ export class Api {
 
       const similarity = el(similaritySelector).text();
 
+      const service = el(serviceSelector2).text()
+        ? el(serviceSelector2).text()
+        : el(serviceSelector1).text();
+
       images.push({
         url: url,
-        similarity: similarity
+        similarity: similarity,
+        service: service
       });
     });
 

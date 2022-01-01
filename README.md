@@ -17,7 +17,9 @@ import AnimeApi from 'anime-image-search';
 import fs from 'fs';
 
 (async () => {
-  const api = new AnimeApi();
+  const api = new AnimeApi({
+    saucenaoKey: 'YOUR_API_KEY'
+  });
 
   const image = fs.createReadStream('/path/to/image'); // To use a ReadStream
 
@@ -28,7 +30,6 @@ import fs from 'fs';
   // OR you can pass the path directly api.saucenao('/path/to/image')
 
   const saucenaoSearch = await api.saucenao(image, {
-    api_key: 'YOUR_API_KEY',
     output_type: 2
     // Saucenao Options
   });

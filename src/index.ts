@@ -5,6 +5,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { ReadStream, createReadStream } from 'fs';
 
 interface DefaultOptions {
+  saucenaoKey?: string;
   axios?: {
     headers?: {
       UserAgent?: string;
@@ -13,7 +14,6 @@ interface DefaultOptions {
 }
 
 interface SaucenaoOptions {
-  api_key?: string;
   output_type?: number;
   dbmask?: number;
   dbmaski?: number;
@@ -54,7 +54,6 @@ export default class Api {
    *
    * @param {string|Buffer|ReadStream} image - The image to search.
    * @param {SaucenaoOptions} options - Saucenao Options.
-   * @param {string} options.api_key - Saucenao Api Key.
    * @param {number} options.output_type - Output type.
    * @param {number} options.dbmask - Mask for enable specific indexes.
    * @param {number} options.dbmaski - Mask for disable specific indexes.
@@ -71,9 +70,13 @@ export default class Api {
     image: string | Buffer | ReadStream,
     options: SaucenaoOptions
   ): Promise<object[]> {
-    const opts = { ...saucenaoDefaultOptions, ...options };
+    const opts = {
+      ...saucenaoDefaultOptions,
+      ...options,
+      api_key: this.options.saucenaoKey
+    };
 
-    if (!opts.api_key) {
+    if (!this.options.saucenaoKey) {
       throw new Error(
         'To use saucenao search you need to use your own api key. Go to https://saucenao.com, register and get an api key.'
       );

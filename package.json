@@ -17,6 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/EmersonDoAmaral/anime-image-search.git"
   },
+  "keywords": ["anime", "image search", "api", "iqdb"],
   "author": "Emerson do Amaral",
   "dependencies": {
     "axios": "^0.24.0",

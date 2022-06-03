@@ -23,6 +23,64 @@ interface SaucenaoOptions {
   min_similarity?: number;
 }
 
+type ArtStationResponse = {
+  ext_urls: string[];
+  title?: string;
+  as_project?: string;
+  author_name?: string;
+  author_url?: string;
+};
+
+type PixivResponse = {
+  ext_urls: string[];
+  title?: string;
+  pixiv_id?: number;
+  member_name?: string;
+  member_id?: number;
+};
+
+type DevianArtResponse = {
+  ext_urls: string[];
+  title?: string;
+  da_id?: string;
+  author_name?: string;
+  author_url?: string;
+};
+
+type DanbooruResponse = {
+  ext_urls: string[];
+  danbooru_id?: number;
+  source?: string;
+  material?: string;
+  creator?: string;
+  characters?: string;
+};
+
+type GelbooruResponse = Omit<DanbooruResponse, 'danbooru_id'> & {
+  gelbooru_id?: number;
+};
+
+type AnimePicturesResponse = Omit<DanbooruResponse, 'danbooru_id'> & {
+  'anime-pictures_id'?: number;
+};
+
+interface SaucenaoResponse {
+  header: {
+    source: string;
+    similarity: string;
+    thumbnail: string;
+    index_id: number;
+    index_name: string;
+    dupes: number;
+    hidden: number;
+  };
+  data: PixivResponse &
+    ArtStationResponse &
+    DevianArtResponse &
+    GelbooruResponse &
+    DanbooruResponse &
+    AnimePicturesResponse;
+}
 const dOptions: DefaultOptions = {
   axios: {
     headers: {
@@ -49,6 +107,38 @@ export default class Api {
 
     this.searchEngines = ['https://saucenao.com', 'http://www.iqdb.org'];
   }
+  private getSource(options: SaucenaoResponse[]) {
+    for (let i = 0; i < options.length; i++) {
+      switch (options[i].header.index_id) {
+        case 5:
+          options[i].header.source = 'Pixiv';
+          break;
+        case 9:
+          options[i].header.source = 'Danbooru';
+          break;
+        case 25:
+          options[i].header.source = 'Gelbooru';
+          break;
+        case 28:
+          options[i].header.source = 'Anime-Pictures';
+          break;
+        case 34:
+          options[i].header.source = 'DevianArt';
+          break;
+        case 39:
+          options[i].header.source = 'ArtStation';
+          break;
+        case 41:
+          options[i].header.source = 'Twitter';
+          break;
+        default:
+          options[i].header.source = 'Unknown';
+          break;
+      }
+    }
+
+    return options;
+  }
   /**
    * Receives a image to search in saucenao.
    *
@@ -69,7 +159,7 @@ export default class Api {
   async saucenao(
     image: string | Buffer | ReadStream,
     options: SaucenaoOptions
-  ): Promise<object[]> {
+  ): Promise<SaucenaoResponse[]> {
     const opts = {
       ...saucenaoDefaultOptions,
       ...options,
@@ -112,18 +202,18 @@ export default class Api {
     };
 
     const response = await axios(config).catch((err) => {
-      if (err.response.status === 403) {
+      console.log(err);
+      if (err?.response?.status === 403) {
         throw new Error(`${err.response.statusText}, the api key is invalid.`);
       } else {
         throw new Error(`${err.response.status}. ${err.response.statusText}`);
       }
     });
 
-    const results = response.data.results.filter(
-      (item: { header: { similarity: string } }) => {
-        return parseFloat(item.header.similarity) >= opts.min_similarity!;
-      }
-    );
+    let results = response.data.results.filter((item: SaucenaoResponse) => {
+      return parseFloat(item.header.similarity) >= opts.min_similarity!;
+    });
+    results = this.getSource(results);
 
     return results;
   }

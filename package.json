@@ -1,10 +1,12 @@
 {
   "name": "anime-image-search",
   "description": "An anime image search package.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "license": "MIT",
   "scripts": {
     "dev:tsc": "yarn tsc -w",
@@ -17,7 +19,12 @@
     "type": "git",
     "url": "git+https://github.com/EmersonDoAmaral/anime-image-search.git"
   },
-  "keywords": ["anime", "image search", "api", "iqdb"],
+  "keywords": [
+    "anime",
+    "image search",
+    "api",
+    "iqdb"
+  ],
   "author": "Emerson do Amaral",
   "dependencies": {
     "axios": "^0.24.0",

@@ -23,7 +23,9 @@
     "anime",
     "image search",
     "api",
-    "iqdb"
+    "iqdb",
+    "saucenao",
+    "reverse image"
   ],
   "author": "Emerson do Amaral",
   "dependencies": {

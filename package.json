@@ -23,7 +23,8 @@
     "anime",
     "image search",
     "api",
-    "iqdb"
+    "iqdb",
+    "saucenao"
   ],
   "author": "Emerson do Amaral",
   "dependencies": {

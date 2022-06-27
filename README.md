@@ -25,7 +25,7 @@ import fs from 'fs';
 
   const image = fs.readFileSync('/path/to/image'); // To use a buffer
 
-  const image = 'http://example.com/image.jpg'; // To use an url
+  const image = 'https://example.com/image.jpg'; // To use an url
 
   // OR you can pass the path directly api.saucenao('/path/to/image')
 
